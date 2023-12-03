@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import countriesService from './services/countries'
+import weatherService from './services/weather'
 import CountryList from './components/CountryList'
 import CountryDisplay from './components/CountryDisplay'
 
@@ -7,20 +8,24 @@ function App() {
   const [countryName, setCountryName] = useState('')
   const [countries, setCountries] = useState(null)
   const [country, setCountry] = useState(null)
+  const [weather, setWeather] = useState(null)
 
   useEffect(() => {
     countriesService.getAll().then(initialCountries => setCountries(initialCountries.map((c,i) => ({...c, id: i+1}))))
   }, [])
   
   useEffect(() => {
-    console.log(`running effect, country: ${countryName}`)
+    //console.log(`running effect, country: ${countryName}`)
 
     if (countries && countries.some(c => c.name.common.toLowerCase() === countryName.toLowerCase())) {
-      console.log('found match')
-      setCountry(countries.find(c => c.name.common.toLowerCase() === countryName.toLowerCase()))
+      //console.log('found match')
+      const newCountry = countries.find(c => c.name.common.toLowerCase() === countryName.toLowerCase())
+      setCountry(newCountry)
+      weatherService.getWeather(newCountry).then(returnedWeather => setWeather(returnedWeather))
     }
     else {
       setCountry(null)
+      setWeather(null)
     }
   }, [countryName])
 
@@ -54,12 +59,12 @@ function App() {
     )
   }
 
-  if (country) {
+  if (country && weather) {
     return (
       <>
         <h1>Country Finder</h1>
         <input value={countryName} onChange={handleCountry}></input>
-        <CountryDisplay country={country}/>
+        <CountryDisplay country={country} weather={weather}/>
       </>
     )
   }
